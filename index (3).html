@@ -1,0 +1,1012 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="قارئ صوتي لأهم 350 كلمة في اللغة الإنجليزية: استمع للنطق وردد وراء الصوت.">
+<title>قارئ دليلك الصوتي</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Sans:wght@500;600&display=swap">
+<style>
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; }
+/* Layout: one RTL column of word cards (two columns on wide screens), sticky section tabs, a fixed player bar at the bottom. */
+:root {
+  --bg: #f2f7f6;
+  --surface: #ffffff;
+  --soft: #e4f1ef;
+  --ink: #102a2b;
+  --muted: #546f70;
+  --line: #cddfdd;
+  --teal: #00796f;
+  --teal-ink: #ffffff;
+  --hl: #fbe94f;
+  --on-hl: #1c2a1c;
+  --shadow: rgba(16, 42, 43, 0.12);
+  --f-ar: "IBM Plex Sans Arabic", "Segoe UI", Tahoma, sans-serif;
+  --f-en: "IBM Plex Sans", "Segoe UI", Arial, sans-serif;
+  --f-num: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0b191a;
+    --surface: #122829;
+    --soft: #173a3a;
+    --ink: #e7f3f1;
+    --muted: #90b1ae;
+    --line: #244647;
+    --teal: #46c8ba;
+    --teal-ink: #06201f;
+    --hl: #f0d93a;
+    --on-hl: #1a2300;
+    --shadow: rgba(0, 0, 0, 0.5);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0b191a;
+  --surface: #122829;
+  --soft: #173a3a;
+  --ink: #e7f3f1;
+  --muted: #90b1ae;
+  --line: #244647;
+  --teal: #46c8ba;
+  --teal-ink: #06201f;
+  --hl: #f0d93a;
+  --on-hl: #1a2300;
+  --shadow: rgba(0, 0, 0, 0.5);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--f-ar);
+  font-size: 16px;
+  line-height: 1.6;
+}
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0 0 auto;
+  height: env(safe-area-inset-top, 0px);
+  z-index: 10;
+  background: var(--bg);
+}
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+.ic { width: 22px; height: 22px; fill: currentColor; display: block; flex: none; }
+
+.wrap {
+  max-width: 68rem;
+  margin-inline: auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+
+/* Header */
+.head { padding-block: 28px 8px; display: grid; gap: 6px; }
+.brand { margin: 0; font-size: 0.85rem; color: var(--muted); letter-spacing: 0.02em; }
+h1 { margin: 0; font-size: clamp(1.7rem, 5vw, 2.4rem); line-height: 1.25; font-weight: 700; text-wrap: balance; }
+.lede { margin: 0; max-width: 40rem; color: var(--muted); text-wrap: pretty; }
+.stat { margin: 10px 0 0; display: flex; align-items: center; gap: 12px; font-size: 0.92rem; }
+.stat .meter { flex: 0 1 12rem; height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
+.stat .meter i { display: block; height: 100%; width: 0; background: var(--teal); }
+.num-f { font-family: var(--f-num); font-variant-numeric: tabular-nums; }
+
+/* Settings */
+.settings { margin-top: 14px; border: 1px solid var(--line); background: var(--surface); border-radius: 12px; }
+.settings summary { padding: 12px 16px; font-weight: 600; cursor: pointer; min-height: 44px; display: flex; align-items: center; }
+.sgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); gap: 12px 24px; padding: 4px 16px 16px; }
+.field { display: grid; gap: 4px; min-width: 0; align-content: start; }
+.field > label, .field > .lbl { font-size: 0.85rem; color: var(--muted); display: flex; justify-content: space-between; gap: 8px; }
+select, input[type="search"] {
+  width: 100%; min-height: 44px; padding: 0 12px; border-radius: 8px;
+  border: 1px solid var(--line); background: var(--bg); color: var(--ink);
+}
+select { font-family: var(--f-en); }
+input[type="range"] { width: 100%; min-height: 44px; accent-color: var(--teal); }
+.chk { display: flex; align-items: center; gap: 10px; min-height: 44px; font-size: 0.95rem; cursor: pointer; }
+.chk input { width: 20px; height: 20px; accent-color: var(--teal); flex: none; }
+.notice { margin: 0; padding: 10px 14px; border-radius: 8px; background: var(--soft); border: 1px solid var(--line); font-size: 0.92rem; grid-column: 1 / -1; }
+
+/* Tabs */
+.nav { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); border-bottom: 1px solid var(--line); margin-top: 16px; }
+.tabs { display: flex; gap: 8px; overflow-x: auto; padding-block: 10px; scrollbar-width: none; }
+.tabs::-webkit-scrollbar { display: none; }
+.tab {
+  flex: none; min-height: 44px; padding: 0 16px; border-radius: 999px;
+  border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+  display: flex; align-items: center; gap: 10px; font-weight: 500;
+}
+.tab small { font-family: var(--f-num); font-size: 0.75rem; opacity: 0.75; font-variant-numeric: tabular-nums; }
+.tab[aria-selected="true"] { background: var(--teal); border-color: var(--teal); color: var(--teal-ink); }
+
+/* List */
+main.wrap { padding-block: 16px 140px; }
+.tools { margin-bottom: 14px; max-width: 24rem; }
+.list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr)); }
+.card {
+  min-width: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+  padding: 14px 16px; display: grid; gap: 10px; align-content: start;
+  scroll-margin-block: 90px 140px;
+}
+.card.current { border-color: var(--teal); box-shadow: 0 0 0 1px var(--teal), 0 6px 18px var(--shadow); }
+.top { display: flex; align-items: center; gap: 10px; }
+.no {
+  flex: none; min-width: 28px; height: 28px; padding: 0 6px; border-radius: 14px;
+  background: var(--teal); color: var(--teal-ink); display: grid; place-items: center;
+  font-family: var(--f-num); font-size: 0.75rem; font-variant-numeric: tabular-nums;
+}
+.word {
+  margin: 0; margin-inline-end: auto; min-width: 0; overflow-wrap: anywhere;
+  font-family: var(--f-en); font-weight: 600; font-size: 1.45rem; line-height: 1.2; color: var(--teal);
+  direction: ltr; unicode-bidi: isolate;
+  background: linear-gradient(transparent 62%, transparent 62%);
+}
+.card.say-word .word { background: linear-gradient(transparent 62%, var(--hl) 62%); }
+.rbtn {
+  flex: none; width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center;
+  border: 1px solid var(--line); background: var(--bg); color: var(--ink);
+}
+.rbtn:hover { border-color: var(--teal); }
+.rbtn.speak { background: var(--soft); color: var(--teal); }
+.rbtn[aria-pressed="true"] { background: var(--teal); border-color: var(--teal); color: var(--teal-ink); }
+.ar { margin: 0; font-size: 1.1rem; font-weight: 600; }
+.sentbox { border-top: 1px dashed var(--line); padding-top: 10px; display: grid; gap: 4px; }
+.sentrow {
+  direction: ltr; display: flex; align-items: flex-start; gap: 10px;
+  padding: 6px 8px; margin-inline: -8px; border-radius: 8px;
+}
+.card.say-sent .sentrow { background: var(--soft); }
+.sbtn {
+  flex: none; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center;
+  border: 1px solid var(--line); background: var(--bg); color: var(--teal);
+}
+.sbtn .ic { width: 18px; height: 18px; }
+.sent { margin: 0; align-self: center; font-family: var(--f-en); font-size: 1rem; line-height: 1.5; text-align: left; min-width: 0; overflow-wrap: anywhere; }
+.sent mark { background: var(--hl); color: var(--on-hl); padding: 0 0.2em; border-radius: 3px; }
+.tr { margin: 0; color: var(--muted); font-size: 0.92rem; }
+.hide-ar .ar, .hide-ar .tr { filter: blur(8px); cursor: pointer; user-select: none; }
+.hide-ar .card.revealed .ar, .hide-ar .card.revealed .tr { filter: none; }
+.empty { padding: 28px 0; color: var(--muted); }
+.foot { margin: 32px 0 0; padding-top: 16px; border-top: 1px solid var(--line); color: var(--muted); font-size: 0.88rem; display: grid; gap: 4px; max-width: 40rem; }
+.foot p { margin: 0; }
+
+/* Player bar */
+.bar {
+  position: fixed; inset: auto 0 0; z-index: 6; background: var(--surface);
+  border-top: 1px solid var(--line); box-shadow: 0 -6px 20px var(--shadow);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.prog { height: 3px; background: var(--line); }
+.prog i { display: block; height: 100%; width: 0; background: var(--teal); transition: width 0.25s; }
+.barin { display: flex; align-items: center; gap: 12px; padding-block: 10px; }
+.now { flex: 1; min-width: 0; display: grid; gap: 0; }
+.now .en { font-family: var(--f-en); font-weight: 600; font-size: 1.15rem; color: var(--teal); direction: ltr; text-align: right; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.now .meta { display: flex; gap: 10px; font-size: 0.85rem; color: var(--muted); min-width: 0; }
+.now .meta span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ctl { display: flex; align-items: center; gap: 10px; flex: none; }
+.cbtn { width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--line); background: var(--bg); display: grid; place-items: center; }
+.cbtn:disabled, .pbtn:disabled { opacity: 0.4; cursor: default; }
+.cbtn.next .ic { transform: scaleX(-1); }
+.pbtn { width: 56px; height: 56px; border-radius: 50%; border: 0; background: var(--teal); color: var(--teal-ink); display: grid; place-items: center; }
+.pbtn .ic { width: 28px; height: 28px; }
+
+@media (prefers-reduced-motion: reduce) { .prog i { transition: none; } }
+@media (max-width: 420px) { .barin { gap: 8px; } .ctl { gap: 6px; } .word { font-size: 1.3rem; } }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></symbol>
+  <symbol id="i-pause" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></symbol>
+  <symbol id="i-skip" viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></symbol>
+  <symbol id="i-speaker" viewBox="0 0 24 24"><path d="M3 9v6h4l5 4V5L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></symbol>
+</svg>
+
+<div class="page" dir="rtl" lang="ar">
+  <header class="wrap head">
+    <p class="brand">دليلك للانجلش</p>
+    <h1>قارئ دليلك الصوتي</h1>
+    <p class="lede">اسمع نطق كلمات كتيب «أهم 350 كلمة» وجملها، ثم ردد وراء الصوت حتى تثبت الكلمة.</p>
+    <p class="stat"><span id="stat">حفظت 0 من 350 كلمة</span><span class="meter" aria-hidden="true"><i id="statBar"></i></span></p>
+  </header>
+
+  <section class="wrap" aria-label="إعدادات الصوت">
+    <details class="settings" id="settings">
+      <summary>إعدادات الصوت</summary>
+      <div class="sgrid">
+        <p class="notice" id="novoice" hidden>ما لقينا صوتاً إنجليزياً في هذا الجهاز. جرّب متصفح Chrome أو Safari، أو أضف صوتاً إنجليزياً من إعدادات الجهاز.</p>
+        <div class="field">
+          <label for="voice">الصوت</label>
+          <select id="voice" dir="ltr"></select>
+        </div>
+        <div class="field">
+          <label for="rate"><span>السرعة</span><span class="num-f" id="rateOut">0.90×</span></label>
+          <input type="range" id="rate" min="0.5" max="1.1" step="0.05" value="0.9">
+        </div>
+        <div class="field">
+          <label for="repeat">تكرار الكلمة</label>
+          <select id="repeat">
+            <option value="1">مرة واحدة</option>
+            <option value="2">مرتين</option>
+            <option value="3">3 مرات</option>
+          </select>
+        </div>
+        <div class="field">
+          <span class="lbl">أثناء التشغيل</span>
+          <label class="chk"><input type="checkbox" id="sentence"> اقرأ الجملة بعد الكلمة</label>
+          <label class="chk"><input type="checkbox" id="shadow"> اترك وقتاً للترديد بعد كل قراءة</label>
+          <label class="chk"><input type="checkbox" id="hideAr"> أخفِ المعنى للاختبار (اضغط عليه لإظهاره)</label>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <nav class="nav" aria-label="أقسام الكلمات">
+    <div class="wrap"><div class="tabs" id="tabs" role="tablist"></div></div>
+  </nav>
+
+  <main class="wrap">
+    <div class="tools">
+      <input type="search" id="q" placeholder="ابحث عن كلمة أو معنى" aria-label="ابحث عن كلمة أو معنى" autocomplete="off">
+    </div>
+    <ul class="list" id="list"></ul>
+    <p class="empty" id="empty" hidden>ما لقينا كلمة تطابق بحثك في هذا القسم. جرّب قسماً آخر.</p>
+    <div class="foot">
+      <p>الكتيب يقترح 10 كلمات باليوم، وتكرار كل كلمة 10 مرات.</p>
+      <p>مراجعة متباعدة: راجع الكلمة في اليوم 1، ثم 7، ثم 16، ثم 35.</p>
+      <p>الكلمات والجمل من كتيب دليلك للانجلش @dalil4english</p>
+    </div>
+  </main>
+
+  <div class="bar" role="region" aria-label="مشغل الصوت">
+    <div class="prog" aria-hidden="true"><i id="prog"></i></div>
+    <div class="wrap barin">
+      <div class="now">
+        <div class="en" id="barEn" lang="en">—</div>
+        <div class="meta"><span id="barAr"></span><span class="num-f" id="barPos"></span></div>
+      </div>
+      <div class="ctl">
+        <button type="button" class="cbtn prev" id="prev" aria-label="الكلمة السابقة"><svg class="ic" aria-hidden="true"><use href="#i-skip"/></svg></button>
+        <button type="button" class="pbtn" id="play" aria-label="تشغيل القسم"><svg class="ic" aria-hidden="true"><use id="playUse" href="#i-play"/></svg></button>
+        <button type="button" class="cbtn next" id="next" aria-label="الكلمة التالية"><svg class="ic" aria-hidden="true"><use href="#i-skip"/></svg></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+var SECTIONS = [
+{id:"core", tab:"كلمات أساسية", count:100, items:[
+["for","إلى","There is a phone message for you.","هناك رسالة هاتفية إليك"],
+["they","هم","They are my friends.","هم أصدقائي"],
+["with","مع","I left my book with you.","تركت كتابي معك"],
+["but","لكن","He tried hard, but failed.","هو حاول بجد لكن فشل"],
+["from","من","He is absent from school.","هو غائب من المدرسة"],
+["will","سوف","Adam will visit us.","سوف يزورنا آدم"],
+["would","سيكون","It would make me happy.","هذا سيجعلني سعيد"],
+["about","عن","This book is about science.","هذا الكتاب عن العلوم"],
+["can","يستطيع","I can speak three languages.","أنا أستطيع أن أتحدث ٣ لغات"],
+["which","أيّ","Which movie do you like?","أيّ فيلم تحب؟"],
+["there","هناك","There is water in the fridge.","هناك مياه في الثلاجة"],
+["more","أكثر","Add more sugar to my coffee.","أضف سكر أكثر الى قهوتي"],
+["who","من","Who are you talking with?","مع من تتحدث؟"],
+["when","متى","When do you get up?","متى تستيقظ؟"],
+["what","ماذا","What is he doing now?","ماذا يفعل الان؟"],
+["up","فوق","I will go up to see my mom.","سوف أصعد فوق لأرى أمي"],
+["some","بعض","She ordered some food.","طلبت بعض الطعام"],
+["other","آخر","Where is the other book?","أين يوجد الكتاب الآخر؟"],
+["out","خارج","They are out in the garden.","هم بالخارج في الحديقة"],
+["take","يأخذ","I have to take medicine.","يجب أنا اخذ علاج"],
+["because","لأن","Because he's sick, he can't come.","لانه مريض، هو لا يستطيع ان يأتي"],
+["very","جداً","I'm very happy to see you.","أنا سعيد جدا لرؤيتك"],
+["just","فقط","It was just a joke.","لقد كانت فقط مزحة"],
+["could","استطاع","Ahmed could fix the computer.","استطاع أحمد أن يصلح الكمبيوتر"],
+["than","من","Zain is taller than AbduAllah.","زين أطول من عبد الله"],
+["now","الآن","Mr. Ali is busy now.","أستاذ علي مشغول الان"],
+["then","بعد","Let me finish it, then we'll go.","دعني أنتهي وسنذهب بعد ذلك"],
+["also","أيضا","I'm cold, and I'm also hungry.","أنا بردان، وأنا أيضا جوعان"],
+["into","داخل","Put the plate into the cupboard.","ضع الطبق داخل دولاب الأطباق"],
+["over","فوق","Don't jump over the fence.","لا تقفز من فوق السور"],
+["any","أي","Do you have any question?","هل لديك أي سؤال؟"],
+["after","بعد","We will go out after dinner.","سوف نذهب للخارج بعد العشاء"],
+["where","أين","Where did you put the keys?","أين وضعت المفاتيح؟"],
+["most","معظم","Most of the students are good.","معظم الطلاب جيدون"],
+["should","ينبغي","You should see a doctor.","ينبغي أن تذهب للطبيب"],
+["much","كثير","He earns much money.","هو يكسب الكثير من المال"],
+["how","كيف","How was your day?","كيف كان يومك؟"],
+["back","خلف","The house is at the back.","المنزل في الخلف"],
+["even","حتى","He didn't even say hello.","هو حتى لم يقل اهلا"],
+["here","هنا","I've lived here since 1999.","لقد عشت هنا منذ عام ١٩٩٩"],
+["many","العديد","My son has many toys.","ابني لديه العديد من الألعاب"],
+["such","مثل","I like shopping centers such as this one.","أحب المراكز التجارية مثل هذا"],
+["really","حقاً","She is really a smart girl.","هي حقا فتاة ذكية"],
+["before","قبل","She always wakes up before dawn.","هي دائما تستيقظ قبل الفجر"],
+["wonderful","رائع","It was a wonderful day.","كان يوما رائعا"],
+["down","أسفل","The elevator is going down.","المصعد ينزل إلى أسفل"],
+["between","بين","He stood between Ali and Ahmed.","وقف بين علي وأحمد"],
+["too","أيضا","I'd like to come too.","أنا أيضا أود أن آتي"],
+["still","ساكن","The lake is very still at night.","البحيرة تكون ساكنة جدا في الليل"],
+["everything","كل شيء","Is everything all right?","هل كل شيء على ما يرام؟"],
+["something","شيئا ما","There must be something wrong.","من الأكيد أن هناك شيئا ما خطأ"],
+["another","اخر","Can I have another one?","يمكن أن أحصل على واحدة اخرى؟"],
+["each","كل","Each wall has a different color.","كل حائط له لون مختلف"],
+["off","إيقاف","Can you turn off the fan?","هل يمكن أن نوقف المروحة؟"],
+["why","لماذا","Why did you come late?","لماذا حضرت متأخرا؟"],
+["while","في حين","The phone rang while I was sleeping.","الجوال رن عندما كنت نائم"],
+["might","قد","The weather might be rainy.","قد يكون الجو ممطر"],
+["must","يجب","You must follow the traffic rules.","يجب أن تتبع قواعد المرور"],
+["never","أبداً","We've never been to Australia.","لم نذهب إلى استراليا أبدا"],
+["around","حول","He travelled around the world.","لقد سافر حول العالم"],
+["again","مرة أخرى","Please, don't do that again.","من فضلك لا تفعل ذلك مرة أخرى"],
+["every","كل","They visit their father every Friday.","يزورون والدهم كل يوم جمعة"],
+["during","أثناء","Ali took notes during class.","علي أخذ ملاحظات أثناء الفصل"],
+["always","دائماً","I always go to work by my car.","انا دائما أذهب للعمل بسيارتي"],
+["since","منذ","I haven't seen her since she was 8.","لم أراها منذ كان عمرها ٨ سنوات"],
+["once","ذات مرة","I visited Makkah once.","لقد زرت مكة ذات مرة"],
+["enough","كافي","We don't have enough money.","ليس لدينا مال كافي"],
+["anything","أي شيء","I will do anything to help you.","سأفعل أي شيء لمساعدتك"],
+["nothing","لا شيء","I have nothing new to tell you.","لا شيء جديد لدي لأخبرك إياه"],
+["both","كلا","I liked both of the places.","أعجبني كلا المكانين"],
+["hero","بطل","The hero of the novel is very brave.","بطل الرواية شجاع جدا"],
+["sugar","السكر","This juice has no sugar.","هذا العصير لا يحتوي على السكر"],
+["suddenly","فجأة","The accident happened suddenly.","لقد وقعت الحادثة فجأة"],
+["yourself","نفسك","You'll cut yourself.","ستجرح نفسك"],
+["color","اللون","What's your favorite color?","ما هو لونك المفضل؟"],
+["red","أحمر","She is wearing a red dress.","هي ترتدي فستان أحمر"],
+["favorite","المفضل","This is my favorite restaurant.","هذا هو مطعمي المفضل"],
+["employee","موظف","The number of the employees is low.","عدد الموظفين منخفض"],
+["pure","نقي","These shirts are made of pure cotton.","هذه القمصان مصنوعة من قطن نقي"],
+["valuable","ذو قيمة","These antiques are extremely valuable.","هذه الأنتيكات ذات قيمة عالية جدا"],
+["force","يجبر","You can't force her to make a decision.","لا يمكنك أن تجبرها على اتخاذ قرار"],
+["through","عبر","We drove the car through the tunnel.","لقد قدنا السيارة عبر النفق"],
+["future","مستقبل","I worry about my future.","أنا قلق على مستقبلي"],
+["paper","ورق","Write your ideas on a paper.","اكتب أفكارك على ورقة"],
+["date","تاريخ","What is your date of birth?","ماهو تاريخ ميلادك؟"],
+["animal","حيوان","Children love animals.","الأطفال يحبون الحيوانات"],
+["bank","بنك","I need to get a bank loan.","أنا احتاج أن أحصل على قرض من البنك"],
+["clothes","ملابس","You have to change your clothes.","يجب أن تغير ملابسك"],
+["sea","بحر","I love swimming in the sea.","أنا أحب السباحة في البحر"],
+["library","مكتبة","The library has lots of books.","المكتبة بها العديد من الكتب"],
+["shape","شكل","They sell candles in all shapes.","هم يبيعون الشموع بكل الأشكال"],
+["surface","سطح","There's a bottle on the surface of the water.","هناك زجاجة على سطح الماء"],
+["transport","المواصلات","What public transport do you prefer?","أي شكل من أشكال المواصلات العامة تفضل؟"],
+["kitchen","مطبخ","We usually eat in the kitchen.","نحن عادة نأكل في المطبخ"],
+["injury","إصابة","She suffered from a knee injury.","لقد عانت من إصابة في الركبة"],
+["salary","راتب","He gets a basic salary every month.","هو يحصل على راتب أساسي كل شهر"],
+["metal","معدن","The door is made of metal.","الباب مصنوع من المعدن"],
+["coat","معطف","You can take off your coat.","يمكنك أن تخلع معطفك"],
+["meat","لحم","We ate meat for lunch.","لقد أكلنا اللحم على الغداء"],
+["gate","بوابة","The house has a huge gate.","المنزل به بوابة ضخمة"]
+]},
+{id:"nouns", tab:"أسماء", count:100, items:[
+["people","أشخاص","I can see a lot of people.","أستطيع أن أرى الكثير من الأشخاص"],
+["year","عام","My grandma is 80 years old.","عمر جدتي ثمانين عام"],
+["business","العمل","I want to start my business.","أريد أن أبدأ عملي"],
+["way","طريق","She is on her way to school.","هي في طريقها إلى المدرسة"],
+["day","يوم","There are 7 days in a week.","هناك سبعة أيام في الأسبوع"],
+["program","برنامج","I love watching this program.","أحب مشاهدة هذا البرنامج"],
+["may","مايو","My brother was born in May.","ولد أخي في مايو"],
+["child","طفل","He is a cute child.","هو طفل رقيق"],
+["call","مكالمة","I received a call from my boss.","تلقيت مكالمة من رئيسي"],
+["company","شركة","She works for a big company.","هي تعمل في شركة كبيرة"],
+["life","الحياة","He saved my life.","لقد أنقذ حياتي"],
+["man","رجل","He is a good man.","هو رجل صالح"],
+["place","مكان","I want to live in a quiet place.","أريد أن أعيش في مكان هادئ"],
+["problem","مشكلة","Do you have any problem?","هل لديك أي مشكلة؟"],
+["example","مثال","Can you give me an example?","هل ممكن أن تعطيني مثال؟"],
+["number","رقم","The number of students is 20.","عدد الطلاب هو ٢٠"],
+["interest","اهتمام","I have an interest in chemistry.","لدي اهتمام بالكيمياء"],
+["country","بلد","Which is the largest country?","ما هي أكبر بلد؟"],
+["face","وجه","You should wash your face.","يجب أن تغسل وجهك"],
+["end","نهاية","I like the end of the story.","تعجبني نهاية القصة"],
+["world","العالم","Covid-19 spread in all the world.","انتشر فيروس كوفيد ١٩ في كل انحاء العالم"],
+["week","أسبوع","My exam will be next week.","سوف يكون امتحاني بعد أسبوع"],
+["home","البيت","Phone me at home after 4 hours.","هاتفني في البيت بعد اربع ساعات"],
+["course","دورة","I took a writing course.","اخذت دورة كتابة"],
+["house","بيت","We live in a large house.","نحن نعيش في بيت كبير"],
+["report","تقرير","You should hand the report today.","يجب ان تسلم التقرير اليوم"],
+["group","مجموعة","He met a group of his friends.","قابل مجموعة من أصدقائه"],
+["case","قضية","Police are investigating the case.","الشرطة تحقق في القضية"],
+["woman","امرأة","My mom is a great woman.","أمي امرأة عظيمة"],
+["book","الكتاب","I borrowed a book from the library.","أستعرت كتاب من المكتبة"],
+["family","الأسرة","They have a very big family.","لديهم عائلة كبيرة جدا"],
+["kind","طيب","Sami is a very kind person.","سامي شخص طيب جدا"],
+["system","النظام","We are trying to fix the system.","نعمل الان على إصلاح النظام"],
+["side","جانب","The parking is on the other side.","ساحة انتظار السيارات توجد على الجانب الاخر"],
+["set","مجموعة","I bought a new set of pens.","أشتريت مجموعة جديدة من الأقلام"],
+["hand","يد","My hands are cold.","يداي باردتين"],
+["money","مال","Don't waste your money.","لا تضيع مالك"],
+["fact","حقيقة","It's a fact that he is a good person.","انها لحقيقة انه شخص جيد"],
+["area","منطقة","There are many banks in this area.","يوجد العديد من البنوك في هذه المنطقة"],
+["name","اسم","What's the name of your brother?","ما هو اسم اخيك؟"],
+["friend","صديق","I have two close friends.","لدي صديقين مقربين"],
+["month","شهر","We spent the last month in London.","قضينا الشهر الماضي في لندن"],
+["work","العمل","I always finish my work at 3 pm.","أنا دائما أنتهي من عملي الساعة الثالثة مساء"],
+["city","مدينة","They live in a big city.","هم يعيشون في مدينة كبيرة"],
+["order","ترتيب","I wrote the names in alphabetical order.","لقد كتبت الأسماء بترتيب أبجدي"],
+["night","ليل","I don't drink coffee at night.","أنا لا أشرب القهوة في الليل"],
+["word","كلمة","These words are difficult to spell.","هذه الكلمات صعبة في هجائها"],
+["issue","قضية","Don't ask me about this issue.","لا تسألني عن هذي القضية"],
+["market","سوق","I go to the market every Friday.","أنا أذهب إلى السوق كل جمعة"],
+["service","خدمة","The service here is excellent.","الخدمة هنا ممتازة"],
+["job","مهنة","What's your job?","ما هي مهنتك؟"],
+["plan","خطة","I have a plan for the weekend.","لدي خطه لعطلة نهاية الاسبوع"],
+["result","نتيجة","I didn't get the exam results.","لم احصل على نتيجة الاختبار"],
+["lot","كثير","There's a lot of food.","هناك الكثير من الطعام"],
+["offer","عرض","There's a very good offer.","هناك عرض جيد"],
+["thing","شيء","What's that thing?","ما هذا الشيء؟"],
+["hour","ساعة","It took me an hour to arrive.","لقد أخذ مني الطريق ساعة لأصل"],
+["student","طالب","She is a university student.","هي طالبة جامعية"],
+["school","المدرسة","He drives the kids to school.","هو يوصل الأطفال إلى المدرسة"],
+["idea","فكرة","That's a great idea.","هذه فكرة رائعة"],
+["cost","تكلفة","What's the cost of that shirt?","ما هي تكلفة هذا القميص؟"],
+["room","غرفة","We will book a room in this hotel.","سوف نحجز غرفة في هذا الفندق"],
+["reason","السبب","This is the reason why she didn't come.","هذا هو السبب في أنها لم تأتي بالأمس"],
+["concern","قلق","There's a concern about the change.","هناك قلق حول التغيير"],
+["head","رأس","His head hurts him badly.","رأسه يؤلمه بشدة"],
+["car","سيارة","Where did you park your car?","أين ركنت سيارتك؟"],
+["level","دور","The house has three levels.","المنزل به ثلاثة أدوار"],
+["person","شخص","She's the only person I can talk to.","هي الشخص الوحيد الذي يمكنني التحدث معه"],
+["experience","خبرة","He has experience in accounting.","لديه خبرة في المحاسبة"],
+["government","حكومة","The government imposes tax.","الحكومة تفرض الضرائب"],
+["information","معلومات","Do you have any information?","هل لديك أي معلومات؟"],
+["member","عضو","They are members of the club.","هم أعضاء في النادي"],
+["support","الدعم","Ali gave me a lot of support.","قدم لي علي الكثير من الدعم"],
+["line","خط","Cross the line to win the race.","اعبر الخط لكي تفوز بالمسابقة"],
+["present","الحاضر","I'm busy at the present time.","أنا مشغول في الوقت الحاضر"],
+["question","سؤال","Do you have any question?","هل لديك أي سؤال؟"],
+["term","فصل دراسي","The academic year has two terms.","السنة الدراسية بها فصلين دراسيين"],
+["age","عمر","What's the age of your son?","ما هو عمر ابنك؟"],
+["process","عملية","The process of producing devices is complicated.","عملية إنتاج الأجهزة معقدة"],
+["train","قطار","I traveled to Jeddah by train.","سافرت لجدة بالقطار"],
+["view","وجهة نظر","From my view, there is a problem.","من وجهة نظري هناك مشكلة"],
+["price","سعر","The prices in this shop are very high.","الأسعار في هذا المحل مرتفعة جدا"],
+["parents","الأبوين","Her parents didn't let her travel alone.","لم يسمح لها أبويها أن تسافر بمفردها"],
+["form","نموذج","Can you fill in this form, please?","هل ممكن أن تملئ هذا النموذج من فضلك؟"],
+["product","منتج","They sell skin-care products.","هم يبيعون منتجات العناية بالبشرة"],
+["story","قصة","She told me a strange story.","لقد حكت لي قصة غريبة"],
+["rate","معدل","What's the normal heart beat rate?","ما هو معدل ضربات القلب الطبيعي؟"],
+["care","اهتمام","She takes care of the children.","هي تولي اهتمام بالاطفال"],
+["effect","تأثير","Smoking has a bad effect on health.","التدخين له تأثير سيئ على الصحة"],
+["sort","نوع","We both like the same sort of music.","نحن الاثنين نحب نفس نوع الموسيقى"],
+["cause","سبب","What's the cause of the death?","ماهو سبب الوفاة؟"],
+["deal","صفقة","She got a good deal on her new house.","لقد حصلت على صفقة جيدة على منزلها الجديد"],
+["water","ماء","Would you bring me some water?","هل يمكن أن تحضر لي بعض الماء؟"],
+["watch","ساعة","He looked at his watch many times.","لقد نظر إلى ساعته عدة مرات"],
+["power","قوة","Eating your breakfast gives you power.","تناول فطارك يعطيك القوة"],
+["test","اختبار","The students are having a spelling test.","الطلاب لديهم اختبار هجاء"],
+["mother","أم","I want to buy a present for my mother.","أريد أن أشتري هدية لأمي"],
+["matter","أمر","What's the matter?","ما الأمر؟"],
+["value","القيمة","Monuments have historical value.","الآثار لها قيمة تاريخية"],
+["office","مكتب","I left the office at eight o'clock last night.","غادرت المكتب الساعة الثامنة ليلة أمس"]
+]},
+{id:"verbs", tab:"أفعال", count:100, items:[
+["have","يمتلك","They have a wonderful car.","هم يمتلكون سيارة رائعة"],
+["say","يقول","He always says the truth.","هو دائما يقول الحقيقة"],
+["go","يذهب","The kids go to school by bus.","الأطفال يذهبون إلى المدرسة بالأوتوبيس"],
+["know","يعرف","I don't know anything about you.","أنا لا أعرف أي شيء عنك"],
+["get","يحصل على","She always gets high marks.","هي تحصل دائما على درجات مرتفعة"],
+["like","يُعجب","I like the story in this book.","تعجبني القصة التي في هذا الكتاب"],
+["think","يفكر","I am thinking of having dinner with our friends today.","أفكر في أن نتناول العشاء مع أصدقائنا اليوم"],
+["see","يرى","She can see her children.","يمكنها أن ترى أطفالها"],
+["take","يأخذ","My father takes me to the zoo.","يأخذني أبي لحديقة الحيوانات"],
+["come","يأتي","My uncle will come tomorrow.","سوف يأتي عمي غدا"],
+["use","يستخدم","Can I use your phone?","هل يمكن أن استخدم هاتفك؟"],
+["look","ينظر","Look at the sky. It's cloudy.","انظر إلى السماء. انها مليئة بالغيوم"],
+["want","يريد","I want some chocolate.","أريد بعض الشكولاته"],
+["give","يعطي","She gave us a nice vase.","أعطتني زهرية جميلة"],
+["find","يجد","I can't find my keys.","أنا لا استطيع أن أجد مفاتيحي"],
+["need","يحتاج","I need some money.","أحتاج بعض المال"],
+["mean","يعني","What do you mean by this?","ماذا تعني بهذا؟"],
+["tell","يخبر","Can you tell me everything about what happened?","هل يمكن أن تخبرني بكل شيء عما حدث؟"],
+["show","يعرض","The report showed an increase in sales.","عرض التقرير زيادة في المبيعات"],
+["change","يغير","You must change your habits.","يجب أن تغير عاداتك للأفضل"],
+["feel","يشعر","How do you feel now?","كيف تشعر الان؟"],
+["write","يكتب","I'm writing a letter.","أنا اكتب خطاب"],
+["try","يحاول","I will try to do my best.","سأحاول أن أفعل أفضل ما لدي"],
+["leave","يغادر","The train leaves at 5 pm.","يغادر القطار في الساعة الخامسة مساءا"],
+["point","يشير","My mom pointed at me and said \"don't do it!\"","أشارت أمي إلي وقالت \"لا تفعل هذا\""],
+["help","يساعد","My brother helps me a lot.","أخي يساعدني كثيرا"],
+["ask","يطلب","Dina asked me to lend her money.","طلبت مني دينا أن أقرضها المال"],
+["meet","يقابل","They will meet at the café.","سوف يتقابلون في المقهى"],
+["talk","يتكلم","We were just talking about it.","كنا فقط نتحدث عنه"],
+["put","يضع","Put the cheese in the fridge.","ضع الجبن في الثلاجة"],
+["become","يصبح","My brother has become a father.","لقد أصبح أخي أبا"],
+["live","يعيش","She lives in Australia.","هي تعيش في استراليا"],
+["play","يلعب","We played cards with our friends.","لعبنا الكوتشينة مع أصدقائنا"],
+["include","يتضمن","The bill includes taxes.","الفاتورة تتضمن الضرائب"],
+["seem","يبدو","You seem very tired.","تبدو مرهق جدا"],
+["let","يترك","She let the clothes dry.","هي تركت الملابس تجف"],
+["keep","يحتفظ","I keep my books in this drawer.","أحتفظ بكتبي في هذا الدرج"],
+["hear","يسمع","I have heard of this doctor.","سمعت عن هذا الطبيب"],
+["study","يدرس","She studies abroad.","هي تدرس بالخارج"],
+["follow","يتبع","He should follow the instructions.","هو يجب أن يتبع التعليمات"],
+["begin","يبدأ","The film begins at seven.","الفيلم يبدأ في السابعة"],
+["run","يركض","I can run a mile in 5 minutes.","يمكنني أن أركض لميل في ٥ دقائق"],
+["turn","ينعطف","You need to turn right.","تحتاج أن تنعطف يمينا"],
+["bring","يُحضر","Shall I bring anything with me?","هل يجب أن أحضر أي شيء معي؟"],
+["move","يتحرك","Don't move.","لا تتحرك"],
+["provide","يوفر","This provides useful information.","هذا يوفر معلومات مفيدة"],
+["read","يقرأ","Children read by the age of 4.","الأطفال يقرؤا بعمر الاربع سنوات"],
+["pay","يدفع","How much did you pay?","كم دفعت؟"],
+["build","يبني","They're building new houses.","هم يبنون بيوت جديدة"],
+["hold","يمسك","Can you hold the bag?","هل ممكن أن تمسك الحقيبة؟"],
+["believe","يصدق","I don't believe you.","أنا لا أصدقك"],
+["love","يحب","He loves swimming in the pool.","هو يحب السباحة في المسبح"],
+["increase","يزيد","The price of gas increased by 4%.","ازداد سعر البترول بنسبة ٤٪"],
+["include","يتضمن","The bill includes tax and service.","الفاتورة تتضمن الضريبة والخدمة"],
+["happen","يحدث","A funny thing happened.","حدث شيء طريف"],
+["buy","يشتري","I buy my shoes from this store.","أنا أشتري أحذيتي من هذا المحل"],
+["understand","يفهم","The students understood the lesson.","فهم الطلاب الدرس"],
+["remember","يتذكر","I don't remember her name.","أنا لا أتذكر اسمها"],
+["hope","يأمل","He hopes he can pass the exam.","هو يأمل أن ينجح في الاختبار"],
+["spend","ينفق","She spends a lot of money.","هي تنفق أموال كثيرة"],
+["learn","يتعلم","They learn Spanish at school.","هم يتعلمون اللغة الاسبانية في المدرسة"],
+["speak","يتحدث","Can I speak to Salma please?","هل يمكن أن أتحدث إلى سلمى من فضلك؟"],
+["consider","يعتبر","I consider her a friend.","أنا أعتبرها كصديق"],
+["control","يتحكم","He couldn't control his reactions.","لم يستطع أن يتحكم في ردود أفعاله"],
+["lose","يخسر","Don't lose your faithful friends.","لا تخسر أصدقائك المخلصين"],
+["continue","يستمر","Her illness continued for weeks.","استمر مرضها لأسابيع"],
+["stand","يقف","People are standing in a line.","الناس يقفون في طابور"],
+["expect","يتوقع","He didn't expect to see me here.","لم يتوقع أن يراني هنا"],
+["fall","يقع","He fell down and broke his leg.","لقد وقع وكسر رجله"],
+["send","يرسل","We'll send the letter by post.","سوف نرسل الخطاب عن طريق البريد"],
+["allow","يسمح","Teachers do not allow eating.","لا يسمح المدرسون بالأكل"],
+["base","أساس","The film is based on a real story.","الفيلم مبني على قصة حقيقية"],
+["suggest","يقترح","I suggest we eat out tonight.","أنا أقترح أن نأكل في الخارج الليلة"],
+["visit","يزور","They visited me.","لقد زاروني"],
+["grow","ينمو","Plants need water to grow.","تحتاج النباتات للمياه لكي تنمو"],
+["return","يرجع","He returned to his country 2 years ago.","لقد رجع إلى بلده منذ عامين"],
+["walk","يمشي","I walked home.","لقد مشيت إلى البيت"],
+["mind","يمانع","Do you mind if I borrow your car?","هل تمانع اذا استعرت سيارتك؟"],
+["record","يسجل","They will record the lecture.","سوف يسجلون المحاضرة"],
+["stay","يبقى","They stayed in Paris.","هم بقوا في باريس"],
+["develop","يطور","You need to develop your skills.","تحتاج أن تطور مهاراتك"],
+["thank","يشكر","I thanked him for helping me.","لقد شكرته لمساعدتي"],
+["share","يشارك","Ali and I shared the same office.","انا و علي تشاركنا نفس المكتب"],
+["sit","يجلس","They are sitting on the sofa.","هم يجلسون على الاريكة"],
+["decide","يقرر","I can't decide what I should do.","لا استطيع أن اقرر ماذا ينبغي علي أن أفعل"],
+["remain","يبقى","She remained silent for minutes.","بقت هي صامتة لدقائق"],
+["win","يفوز","I'm sure my team will win the match.","انا متأكد أن فريقي سيفوز بالماتش"],
+["involve","يحتوي على","The exam involves difficult questions.","الاختبار يحتوي على أسئلة صعبة"],
+["reach","يصل","We will reach the town in one hour.","سنصل للمدينة في خلال ساعة"],
+["create","يصنع","She created a wonderful meal.","لقد صنعت وجبة رائعة"],
+["drive","يقود","She drives a red car.","هي تقود سيارة حمراء"],
+["receive","يستقبل","He received a new message.","هو استقبل رسالة جديدة"],
+["require","يتطلب","My job requires a lot of traveling.","عملي يتطلب السفر كثيرا"],
+["wait","ينتظر","Can you wait until I finish my work?","هل ممكن تنتظر حتى انهي العمل؟"],
+["appear","يظهر","Symptoms usually appear within 2 days.","غالبا تظهر الاعراض في خلال يومين"],
+["add","يضيف","Can you add salt to the soup?","هل يمكن أن تضيف الملح الى الشوربة؟"],
+["pass","يمر","If you pass a supermarket, could you get me some milk?","اذا مررت على سوبرماركت، هل ممكن أن تحضر لي بعض الحليب؟"],
+["produce","ينتج","The factory produces cars.","المصنع ينتج سيارات"],
+["sell","يبيع","The small shop sells drinks.","المحل الصغير يبيع مشروبات"],
+["agree","يوافق","The bank agreed to give me the loan.","وافق البنك على إعطائي القرض"]
+]},
+{id:"adj", tab:"صفات", count:50, items:[
+["good","جيد","I've heard some very good news.","لقد سمعت بعض الاخبار الجيدة"],
+["well","بشكل جيد","You have to study well.","يجب أن تذاكر بشكل جيد"],
+["only","فقط","I have only one brother.","لدي أخ واحد فقط"],
+["first","أول","This is my first visit to New York.","هذه هي زيارتي الأولى لنيويورك"],
+["new","الجديد","She always has new ideas.","هي لديها دائما أفكار جديدة"],
+["right","صح","Your answer is right.","اجابتك صح"],
+["last","الاخير","Adam is the last student to arrive.","أدم هو الطالب الاخير الذي يصل للمدرسة"],
+["long","طويل","He has long black hair.","هو يمتلك شعر طويل أسود"],
+["own","الخاص به","He wanted to live in an apartment of his own.","هو يريد أن يسكن في شقة خاصة به"],
+["low","قليل","Vegetables are low in calories.","الخضراوات قليلة في السعرات الحرارية"],
+["small","صغير","That jacket's too small for you.","هذا الجاكت صغير جدا بالنسبة لك"],
+["little","قليل","She cooked a little amount of food.","لقد طبخت قدر قليل من الطعام"],
+["individual","فردي","This is for individual use only.","هذا للاستعمال الفردي فقط"],
+["late","متأخر","She was late for work.","كانت متأخرة على العمل"],
+["high","عالي","This building is very high.","هذا المبنى عالي جدا"],
+["different","مختلف","He looks different than his brother.","يبدو شكله مختلف عن أخيه"],
+["next","التالي","She's on holiday for the next few days.","هي في أجازة الأيام القليلة التالية"],
+["difficult","صعب","It's difficult for me to answer.","أنه من الصعب بالنسبة لي أن اجاوب"],
+["same","نفس الشيء","Yara is the same age as me.","يارا في نفس عمري"],
+["important","مهم","It's important to learn more than one language.","انه شيء مهم أن تتعلم أكثر من لغة"],
+["large","كبير","We need a larger car.","نحتاج سيارة كبيرة"],
+["open","مفتوح","The market is open now.","السوق مفتوح الان"],
+["young","صغير","She is too young to wash the dishes.","هي صغيرة جدا لتغسل الأطباق"],
+["close","قريب","The park is close to my house.","الحديقة قريبة من منزلي"],
+["lead","قيادة","He managed to hold a lead over the meeting.","تمكن هو من تولي قيادة الاجتماع"],
+["bad","سيء","The weather is very bad.","الجو سيء للغاية"],
+["able","قادر","He wasn't able to call me.","لم يستطع أن يتصل بي"],
+["sure","بالتأكيد","He will come for sure.","هو سيأتي بالتأكيد"],
+["great","رائع","You did a great job.","لقد قمت بعمل رائع"],
+["public","عام","This is a public place.","هذا مكان عام"],
+["possible","ممكن","It's possible that it will rain.","من الممكن أن تمطر"],
+["local","محلي","I reset my watch to local time.","اعدت ساعتي للتوقيت المحلي"],
+["whole","كامل","He will stay for a whole month.","هو سيقيم لشهر كامل"],
+["light","خفيف","The bag is light.","الحقيبة خفيفة"],
+["real","حقيقي","It's a real story.","انها قصة حقيقية"],
+["clear","صافي","The sky is clear.","السماء صافية"],
+["social","اجتماعي","He has an active social life.","لديه حياة اجتماعية نشطة"],
+["political","سياسي","He talked about political issues.","لقد تحدث عن موضوعات سياسية"],
+["free","مجاني","I got free cinema tickets.","لقد حصلت على تذاكر سينما مجانية"],
+["general","عام","The general feeling was enthusiasm.","الشعور العام كان الحماس"],
+["easy","سهل","It's not easy to be a mother.","ليس من السهل أن تكوني أم"],
+["old","قديم","That's an old joke.","هذه مزحة قديمة"],
+["full","ممتلئ","The battery of my mobile is full.","بطارية جوالي ممتلئة"],
+["short","قصير","It's a short distance to the station.","انها مسافة قصيرة إلى المحطة"],
+["human","إنساني","The fault was due to human error.","كان العطل بسبب خطأ بشري"],
+["major","رئيسي","There are two major problems.","هناك مشكلتين رئيسيتين"],
+["special","خاص","I have a suit for special occasions.","لدي بدلة للمناسبات الخاصة"],
+["certain","مؤكد","It is certain that they will agree.","من المؤكد أنهم سيوافقوا"],
+["main","أساسي","That's the main goal.","هذا هو الهدف الرئيسي"],
+["big","كبير","She has big blue eyes.","لديها عينان كبيرتان زرقاوان"]
+]}
+];
+
+</script>
+<script>
+(function () {
+  'use strict';
+  var $ = function (s) { return document.querySelector(s); };
+  var synth = window.speechSynthesis || null;
+  var reduce = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+
+  var prefs = { rate: 0.9, repeat: 1, sentence: true, shadow: true, hideAr: false, voice: '', tab: SECTIONS[0].id };
+  var learned = {};
+  try {
+    var saved = JSON.parse(localStorage.getItem('dalil-reader-prefs') || '{}');
+    for (var pk in saved) { prefs[pk] = saved[pk]; }
+    learned = JSON.parse(localStorage.getItem('dalil-reader-learned') || '{}');
+  } catch (e) {}
+  function persist() {
+    try {
+      localStorage.setItem('dalil-reader-prefs', JSON.stringify(prefs));
+      localStorage.setItem('dalil-reader-learned', JSON.stringify(learned));
+    } catch (e) {}
+  }
+
+  var TOTAL = 0;
+  SECTIONS.forEach(function (s) { TOTAL += s.items.length; });
+  if (!SECTIONS.some(function (s) { return s.id === prefs.tab; })) { prefs.tab = SECTIONS[0].id; }
+
+  var listEl = $('#list'), tabsEl = $('#tabs');
+  var view = [], cur = 0, playing = false, token = 0, sleeps = [], keep = null, query = '';
+  var voices = [];
+
+  function el(tag, cls, txt) {
+    var e = document.createElement(tag);
+    if (cls) { e.className = cls; }
+    if (txt != null) { e.textContent = txt; }
+    return e;
+  }
+  function icon(id) {
+    var ns = 'http://www.w3.org/2000/svg';
+    var s = document.createElementNS(ns, 'svg');
+    s.setAttribute('class', 'ic');
+    s.setAttribute('aria-hidden', 'true');
+    var u = document.createElementNS(ns, 'use');
+    u.setAttribute('href', '#' + id);
+    s.appendChild(u);
+    return s;
+  }
+  function button(cls, label, iconId, act) {
+    var b = el('button', cls);
+    b.type = 'button';
+    b.setAttribute('aria-label', label);
+    b.title = label;
+    b.setAttribute('data-act', act);
+    b.appendChild(icon(iconId));
+    return b;
+  }
+
+  /* ---------- sentence with the target word highlighted ---------- */
+  var IRR = { give: 'gave', fall: 'fell', understand: 'understood', write: 'writing', study: 'studies' };
+  function esc(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+  function sentenceNode(s, w) {
+    var frag = document.createDocumentFragment();
+    var cands = [w]; if (IRR[w]) { cands.push(IRR[w]); }
+    var m = null, i;
+    for (i = 0; i < cands.length && !m; i++) { m = new RegExp('\\b' + esc(cands[i]) + '\\b', 'i').exec(s); }
+    for (i = 0; i < cands.length && !m; i++) { m = new RegExp('\\b' + esc(cands[i]) + '\\w*', 'i').exec(s); }
+    if (!m) { frag.appendChild(document.createTextNode(s)); return frag; }
+    frag.appendChild(document.createTextNode(s.slice(0, m.index)));
+    frag.appendChild(el('mark', '', m[0]));
+    frag.appendChild(document.createTextNode(s.slice(m.index + m[0].length)));
+    return frag;
+  }
+
+  /* ---------- view + rendering ---------- */
+  function section() {
+    for (var i = 0; i < SECTIONS.length; i++) { if (SECTIONS[i].id === prefs.tab) { return SECTIONS[i]; } }
+    return SECTIONS[0];
+  }
+  function keyOf(sec, i) { return sec.id + ':' + i; }
+  function buildView() {
+    var sec = section(), q = query.trim().toLowerCase();
+    view = [];
+    sec.items.forEach(function (it, i) {
+      if (q && it[0].toLowerCase().indexOf(q) < 0 && it[1].indexOf(q) < 0) { return; }
+      view.push({ sec: sec, i: i, it: it, key: keyOf(sec, i) });
+    });
+  }
+  function renderList() {
+    listEl.textContent = '';
+    view.forEach(function (v, k) {
+      var li = el('li', 'card');
+      li.setAttribute('data-k', k);
+      var top = el('div', 'top');
+      top.appendChild(el('span', 'no', String(v.i + 1)));
+      var w = el('h2', 'word', v.it[0]); w.lang = 'en';
+      top.appendChild(w);
+      var lb = button('rbtn learn', 'علّم الكلمة كمحفوظة', 'i-check', 'learn');
+      lb.setAttribute('aria-pressed', learned[v.key] ? 'true' : 'false');
+      top.appendChild(lb);
+      top.appendChild(button('rbtn speak', 'استمع للكلمة', 'i-speaker', 'word'));
+      li.appendChild(top);
+      li.appendChild(el('p', 'ar', v.it[1]));
+      var box = el('div', 'sentbox');
+      var row = el('div', 'sentrow');
+      row.appendChild(button('sbtn', 'استمع للجملة', 'i-speaker', 'sent'));
+      var p = el('p', 'sent'); p.lang = 'en';
+      p.appendChild(sentenceNode(v.it[2], v.it[0]));
+      row.appendChild(p);
+      box.appendChild(row);
+      box.appendChild(el('p', 'tr', v.it[3]));
+      li.appendChild(box);
+      listEl.appendChild(li);
+    });
+    $('#empty').hidden = view.length > 0;
+    listEl.classList.toggle('hide-ar', !!prefs.hideAr);
+  }
+  function card(k) { return listEl.children[k] || null; }
+
+  function learnedIn(sec) {
+    var n = 0;
+    for (var i = 0; i < sec.items.length; i++) { if (learned[keyOf(sec, i)]) { n++; } }
+    return n;
+  }
+  function renderTabs() {
+    tabsEl.textContent = '';
+    SECTIONS.forEach(function (s) {
+      var b = el('button', 'tab');
+      b.type = 'button';
+      b.setAttribute('role', 'tab');
+      b.setAttribute('data-tab', s.id);
+      b.setAttribute('aria-selected', s.id === prefs.tab ? 'true' : 'false');
+      b.appendChild(el('span', '', s.tab));
+      b.appendChild(el('small', '', learnedIn(s) + '/' + s.items.length));
+      tabsEl.appendChild(b);
+    });
+  }
+  function renderStat() {
+    var n = 0;
+    SECTIONS.forEach(function (s) { n += learnedIn(s); });
+    $('#stat').textContent = 'حفظت ' + n + ' من ' + TOTAL + ' كلمة';
+    $('#statBar').style.width = (n / TOTAL * 100) + '%';
+  }
+
+  /* ---------- player bar ---------- */
+  function updateBar() {
+    var has = view.length > 0;
+    $('#play').disabled = !has || !synth;
+    $('#prev').disabled = !has;
+    $('#next').disabled = !has;
+    var v = view[cur];
+    $('#barEn').textContent = v ? v.it[0] : '—';
+    $('#barAr').textContent = v ? v.it[1] : '';
+    $('#barPos').textContent = has ? (cur + 1) + ' / ' + view.length : '';
+    $('#prog').style.width = has ? ((cur + 1) / view.length * 100) + '%' : '0';
+    $('#playUse').setAttribute('href', playing ? '#i-pause' : '#i-play');
+    $('#play').setAttribute('aria-label', playing ? 'إيقاف مؤقت' : 'تشغيل القسم');
+  }
+  function setCurrent(k, scroll) {
+    var old = card(cur);
+    if (old) { old.classList.remove('current'); }
+    cur = k;
+    var c = card(k);
+    if (c) {
+      c.classList.add('current');
+      if (scroll && playing) { c.scrollIntoView({ block: 'center', behavior: reduce ? 'auto' : 'smooth' }); }
+    }
+    updateBar();
+  }
+
+  /* ---------- voices ---------- */
+  function rank(v) {
+    var l = v.lang.replace('_', '-').toLowerCase();
+    return l === 'en-us' ? 0 : (l === 'en-gb' ? 1 : 2);
+  }
+  function loadVoices() {
+    if (!synth) { return; }
+    var all = synth.getVoices() || [];
+    voices = all.filter(function (v) { return /^en([-_]|$)/i.test(v.lang); });
+    voices.sort(function (a, b) { return rank(a) - rank(b) || a.name.localeCompare(b.name); });
+    var sel = $('#voice');
+    sel.textContent = '';
+    voices.forEach(function (v) {
+      var o = document.createElement('option');
+      o.value = v.voiceURI;
+      o.textContent = v.name + ' · ' + v.lang;
+      sel.appendChild(o);
+    });
+    var found = voices.some(function (v) { return v.voiceURI === prefs.voice; });
+    if (found) { sel.value = prefs.voice; }
+    $('#novoice').hidden = voices.length > 0 || all.length === 0;
+  }
+  function currentVoice() {
+    for (var i = 0; i < voices.length; i++) { if (voices[i].voiceURI === prefs.voice) { return voices[i]; } }
+    return voices[0] || null;
+  }
+
+  /* ---------- speech ---------- */
+  function sleep(ms) {
+    return new Promise(function (r) {
+      var o = { r: r };
+      o.t = setTimeout(function () { sleeps = sleeps.filter(function (x) { return x !== o; }); r(); }, ms);
+      sleeps.push(o);
+    });
+  }
+  function speak(text) {
+    return new Promise(function (resolve) {
+      if (!synth) { resolve(); return; }
+      var done = false, wd;
+      function fin() { if (done) { return; } done = true; clearTimeout(wd); resolve(); }
+      var u = new SpeechSynthesisUtterance(text);
+      var v = currentVoice();
+      if (v) { u.voice = v; u.lang = v.lang; } else { u.lang = 'en-US'; }
+      u.rate = prefs.rate;
+      u.onend = fin; u.onerror = fin;
+      keep = u;
+      wd = setTimeout(fin, 1500 + text.length * 160 / prefs.rate);
+      try { synth.speak(u); } catch (e) { fin(); }
+    });
+  }
+  function clearFlags() {
+    var a = listEl.querySelectorAll('.say-word, .say-sent');
+    for (var i = 0; i < a.length; i++) { a[i].classList.remove('say-word', 'say-sent'); }
+  }
+  function halt() {
+    token++;
+    if (synth) { try { synth.cancel(); } catch (e) {} }
+    var s = sleeps; sleeps = [];
+    s.forEach(function (x) { clearTimeout(x.t); x.r(); });
+    clearFlags();
+  }
+  function say(k, what) {
+    var c = card(k), cls = what === 'word' ? 'say-word' : 'say-sent', it = view[k].it;
+    if (c) { c.classList.add(cls); }
+    return speak(what === 'word' ? it[0] : it[2]).then(function () { if (c) { c.classList.remove(cls); } });
+  }
+  async function run(from) {
+    halt();
+    var my = token;
+    playing = true;
+    updateBar();
+    await sleep(120);
+    if (my !== token) { return; }
+    for (var k = from; k < view.length; k++) {
+      setCurrent(k, true);
+      var it = view[k].it;
+      for (var r = 0; r < prefs.repeat; r++) {
+        await say(k, 'word');
+        if (my !== token) { return; }
+        await sleep(prefs.shadow ? 800 + it[0].length * 90 : 350);
+        if (my !== token) { return; }
+      }
+      if (prefs.sentence) {
+        await sleep(150);
+        if (my !== token) { return; }
+        await say(k, 'sent');
+        if (my !== token) { return; }
+        await sleep(prefs.shadow ? Math.min(5000, 600 + it[2].length * 55) : 500);
+        if (my !== token) { return; }
+      }
+      await sleep(250);
+      if (my !== token) { return; }
+    }
+    playing = false;
+    setCurrent(0, false);
+  }
+  function once(k, what) {
+    halt();
+    playing = false;
+    setCurrent(k, false);
+    var my = token;
+    setTimeout(function () { if (my === token) { say(k, what); } }, 100);
+  }
+  function stopPlay() { halt(); playing = false; updateBar(); }
+  function go(d) {
+    if (!view.length) { return; }
+    var n = Math.max(0, Math.min(view.length - 1, cur + d));
+    if (playing) { setCurrent(n, true); run(n); } else { once(n, 'word'); var c = card(n); if (c) { c.scrollIntoView({ block: 'center', behavior: reduce ? 'auto' : 'smooth' }); } }
+  }
+
+  /* ---------- events ---------- */
+  function resetView() {
+    stopPlay();
+    cur = 0;
+    buildView();
+    renderList();
+    setCurrent(0, false);
+  }
+  tabsEl.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-tab]');
+    if (!b || b.getAttribute('data-tab') === prefs.tab) { return; }
+    prefs.tab = b.getAttribute('data-tab');
+    persist();
+    renderTabs();
+    resetView();
+  });
+  var qTimer = null;
+  $('#q').addEventListener('input', function (e) {
+    clearTimeout(qTimer);
+    qTimer = setTimeout(function () { query = e.target.value; resetView(); }, 150);
+  });
+  listEl.addEventListener('click', function (e) {
+    var li = e.target.closest('.card');
+    if (!li) { return; }
+    var k = parseInt(li.getAttribute('data-k'), 10);
+    var b = e.target.closest('[data-act]');
+    if (b) {
+      var act = b.getAttribute('data-act');
+      if (act === 'word' || act === 'sent') { once(k, act); }
+      if (act === 'learn') {
+        var key = view[k].key;
+        if (learned[key]) { delete learned[key]; } else { learned[key] = 1; }
+        b.setAttribute('aria-pressed', learned[key] ? 'true' : 'false');
+        persist(); renderTabs(); renderStat();
+      }
+      return;
+    }
+    if (prefs.hideAr && e.target.closest('.ar, .tr')) { li.classList.toggle('revealed'); }
+  });
+  $('#play').addEventListener('click', function () { if (playing) { stopPlay(); } else { run(cur); } });
+  $('#prev').addEventListener('click', function () { go(-1); });
+  $('#next').addEventListener('click', function () { go(1); });
+
+  $('#voice').addEventListener('change', function (e) { prefs.voice = e.target.value; persist(); });
+  $('#rate').addEventListener('input', function (e) {
+    prefs.rate = parseFloat(e.target.value);
+    $('#rateOut').textContent = prefs.rate.toFixed(2) + '×';
+    persist();
+  });
+  $('#repeat').addEventListener('change', function (e) { prefs.repeat = parseInt(e.target.value, 10); persist(); });
+  $('#sentence').addEventListener('change', function (e) { prefs.sentence = e.target.checked; persist(); });
+  $('#shadow').addEventListener('change', function (e) { prefs.shadow = e.target.checked; persist(); });
+  $('#hideAr').addEventListener('change', function (e) {
+    prefs.hideAr = e.target.checked;
+    listEl.classList.toggle('hide-ar', prefs.hideAr);
+    var rv = listEl.querySelectorAll('.revealed');
+    for (var i = 0; i < rv.length; i++) { rv[i].classList.remove('revealed'); }
+    persist();
+  });
+
+  /* ---------- init ---------- */
+  $('#rate').value = prefs.rate;
+  $('#rateOut').textContent = prefs.rate.toFixed(2) + '×';
+  $('#repeat').value = String(prefs.repeat);
+  $('#sentence').checked = !!prefs.sentence;
+  $('#shadow').checked = !!prefs.shadow;
+  $('#hideAr').checked = !!prefs.hideAr;
+  if (window.matchMedia && matchMedia('(min-width: 760px)').matches) { $('#settings').open = true; }
+
+  if (!synth) {
+    $('#novoice').textContent = 'هذا المتصفح لا يدعم القراءة الصوتية. جرّب Chrome أو Safari أو Edge.';
+    $('#novoice').hidden = false;
+    $('#settings').open = true;
+  } else {
+    loadVoices();
+    if (typeof synth.addEventListener === 'function') { synth.addEventListener('voiceschanged', loadVoices); }
+    else { synth.onvoiceschanged = loadVoices; }
+    setTimeout(loadVoices, 600);
+  }
+
+  renderTabs();
+  renderStat();
+  buildView();
+  renderList();
+  setCurrent(0, false);
+  window.addEventListener('pagehide', function () { if (synth) { try { synth.cancel(); } catch (e) {} } });
+})();
+</script>
+</body>
+</html>
